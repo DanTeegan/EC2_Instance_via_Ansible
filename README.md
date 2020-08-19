@@ -49,10 +49,100 @@ touch playbook.yml
 ```
 ansible-vault edit group_vars/all/pass.yml
 ```
+![](images/1.png)
 ##### You will be prompted to enter a pass phrase 
 
 ##### 8) Once inside you will need to click ```i``` in order to insert and then paste in the following code
 ```
 ec2_access_key: <Your_Access_Key>                                     
 ec2_secret_key: <Your_Secret_Key>
+```
+![](images/2.png)
+
+##### Once the keys are added. To exit press ```ESC``` ```SHIFT + : ``` ```W``` ```Q```
+
+##### 9) Next we nano inside our playbook
+``` sudo nano playbook.yml ```
+![](images/3.png)
+
+##### paste the following code but change the parts where required.
+
+```
+# AWS playbook
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars:
+    key_name: <Your_Name>_aws #(The key you made earlier)
+    region: eu-west-1
+    image: # AMI id found on AWS.
+    id: "web-app"
+    sec_group: "{{ id }}-sec"
+
+  tasks:
+
+    - name: Facts
+      block:
+
+      - name: Get instances facts
+        ec2_instance_facts:
+          aws_access_key: "{{ec2_access_key}}"
+          aws_secret_key: "{{ec2_secret_key}}"
+          region: "{{ region }}"
+        register: result
+
+      - name: Instances ID
+        debug:
+          msg: "ID: {{ item.instance_id }} - State: {{ item.state.name }} - Public DNS: {{ item.public_dns_name }}"
+        loop: "{{ result.instances }}"
+
+      tags: always
+
+
+    - name: Provisioning EC2 instances
+      block:
+
+      - name: Upload public key to AWS
+        ec2_key:
+          name: "{{ key_name }}"
+          key_material: "{{ lookup('file', '~/.ssh/{{ key_name }}.pub') }}"
+          region: "{{ region }}"
+          aws_access_key: "{{ec2_access_key}}"
+          aws_secret_key: "{{ec2_secret_key}}"
+
+      - name: Create security group
+        ec2_group:
+          name: "{{ sec_group }}"
+          description: "Sec group for app {{ id }}"
+          # vpc_id: 12345
+          region: "{{ region }}"
+          aws_access_key: "{{ec2_access_key}}"
+          aws_secret_key: "{{ec2_secret_key}}"
+          rules:
+            - proto: tcp
+              ports:
+                - 22
+              cidr_ip: 0.0.0.0/0
+              rule_desc: allow all on ssh port
+        register: result_sec_group
+
+      - name: Provision instance(s)
+        ec2:
+          aws_access_key: "{{ec2_access_key}}"
+          aws_secret_key: "{{ec2_secret_key}}"
+          key_name: "{{ key_name }}"
+          id: "{{ id }}"
+          group_id: "{{ result_sec_group.group_id }}"
+          image: "{{ image }}"
+          instance_type: t2.micro
+          region: "{{ region }}"
+          wait: true
+          count: 1
+          instance_tags:
+            Name: Eng57.<First>.<L>.WebApp
+
+      tags: ['never', 'create_ec2']
 ```
