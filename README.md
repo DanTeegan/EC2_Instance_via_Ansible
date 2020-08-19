@@ -76,7 +76,7 @@ ec2_secret_key: <Your_Secret_Key>
   gather_facts: False
 
   vars:
-    key_name: <Your_Name>_aws #(The key you made earlier)
+    key_name: my_aws 
     region: eu-west-1
     image: # AMI id found on AWS.
     id: "web-app"
@@ -146,3 +146,41 @@ ec2_secret_key: <Your_Secret_Key>
 
       tags: ['never', 'create_ec2']
 ```
+
+##### 10) Navigate to the directory where your pass.yml file is located.
+
+```
+cd /home/vagrant/AWS_Ansible/group_vars/all
+```
+##### 11) add reading a writing permissions to the pass.yml file
+
+```
+sudo chmod 666 pass.yml
+```
+
+##### 12) Then navigate back to the root
+```
+/home/vagrant/AWS_Ansible
+```
+
+##### 13 ) Once here run the following command: This will run the playbook and create the EC2 instance
+
+```
+ansible-playbook playbook.yml --ask-vault-pass --tags create_ec2
+```
+##### After the command has been run you should see the following screen
+
+![](images/4.png)
+
+##### We can also now see on AWS 
+
+![](images/5.png)
+
+##### 14) Once the instance has been created we can now ssh inside using the Public DNS (IPv4) created
+
+```
+ssh -i ~/.ssh/my_aws ubuntu@ec2-18-202-235-221.eu-west-1.compute.amazonaws.com
+```
+##### 15) You will be prompted for a pass phrase. This is the same one as you created earlier. And we are now inside the EC2 just created using ansible!
+
+![](images/6.png)
