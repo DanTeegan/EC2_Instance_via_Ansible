@@ -47,7 +47,7 @@ touch playbook.yml
 
 ##### 7) Now we can edit the vault and store the EC2 secret and access keys
 ```
-ansible-vault edit group_vars/all/pass.yml
+ansible-vault create group_vars/all/pass.yml
 ```
 ![](images/1.png)
 ##### You will be prompted to enter a pass phrase 
@@ -76,10 +76,10 @@ ec2_secret_key: <Your_Secret_Key>
   gather_facts: False
 
   vars:
-    key_name: my_aws 
+    key_name: dan_aws
     region: eu-west-1
-    image: # AMI id found on AWS.
-    id: "web-app"
+    image: ami-0ff3472dfb98219da
+    id: "daniel-web-app"
     sec_group: "{{ id }}-sec"
 
   tasks:
@@ -142,9 +142,10 @@ ec2_secret_key: <Your_Secret_Key>
           wait: true
           count: 1
           instance_tags:
-            Name: Eng57.<First>.<L>.WebApp
+            Name: Eng67.Daniel.T.EC2onAnsible
 
       tags: ['never', 'create_ec2']
+
 ```
 
 ##### 10) Navigate to the directory where your pass.yml file is located.
